@@ -68,6 +68,8 @@ class Batoto_API:
     
     @staticmethod
     def get_genre_list_S() -> list:
+        '''Returns a list of genres available on Batoto (A Static Method)'''
+        
         genre_list = list()
         params = {
             'langs': 'en'
