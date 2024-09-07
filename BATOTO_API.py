@@ -1,3 +1,4 @@
+import re
 import requests
 from bs4 import BeautifulSoup
 import ast
@@ -214,3 +215,174 @@ class Batoto_API:
                 titles.append(BatoSearchResult(title, link, alias, genre, volch, img_link))
 
         return titles
+    
+    def get_manga_info_by_link(self, link: str) -> BatoResult:
+        ''' title
+            author 
+            artist 
+            genres 
+            og_lang 
+            translated_lang
+            status
+            release_year 
+            description
+            thumbnail
+            chapter_links
+            total_chapters
+        '''
+        response = requests.get(link)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        title = soup.find('h3', class_='item-title').text.strip()
+        thumbnail = soup.find('div', class_='attr-cover').find('img')['src'].strip()
+        description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
+        total_chaps = soup.find('div', class_='episode-list').find('div', class_='head').text
+        total_chaps = re.findall(r'\d+', total_chaps)
+        total_chaps = int(total_chaps[0])
+        author = None
+        artist = None
+        genres = None
+        og_lang = None
+        translated_lang = None
+        status = None
+        release_year = None
+
+        attr_atribs = soup.find_all('div', class_='attr-item')
+
+        for attrib in attr_atribs:
+            if 'Authors' == (attrib.text.strip().split(':')[0]):
+                author = attrib.text.strip().split(':')[1:]
+                author = [auth.strip() for auth in author]
+                if len(author) == 1:
+                    author = author[0]
+
+            if 'Artists' == (attrib.text.strip().split(':')[0]):
+                artist = attrib.text.strip().split(':')[1:]
+                artist = [art.strip() for art in artist]
+                if len(artist) == 1:
+                    artist = artist[0]
+
+            if 'Genres' == (attrib.text.strip().split(':')[0]):
+                genres = attrib.text.strip().split(':')[1:]
+                if len(genres) == 1:
+                    genres = genres[0]
+                genres = genres.split(',')
+                genres = [genre.strip() for genre in genres]
+
+            if 'Original language' == (attrib.text.strip().split(':')[0]):
+                og_lang = attrib.text.strip().split(':')[1:]
+                og_lang = [lang.strip() for lang in og_lang]
+                if len(og_lang) == 1:
+                    og_lang = og_lang[0]
+
+            if 'Translated language' == (attrib.text.strip().split(':')[0]):
+                translated_lang = attrib.text.strip().split(':')[1:]
+                translated_lang = [lang.strip() for lang in translated_lang]
+                if len(translated_lang) == 1:
+                    translated_lang = translated_lang[0]
+
+            if 'Status' == (attrib.text.strip().split(':')[0]):
+                status = attrib.text.strip().split(':')[1:]
+                status = [stat.strip() for stat in status]
+                if len(status) == 1:
+                    status = status[0]
+
+            if 'Year of Release' == (attrib.text.strip().split(':')[0]):
+                release_year = attrib.text.strip().split(':')[1:]
+                release_year = [year.strip() for year in release_year]
+                if len(release_year) == 1:
+                    release_year = release_year[0]
+
+
+        chapter_links = list()
+
+        try:
+            chapters_string = soup.find('div', class_='episode-list').find('div', class_='main').find_all('a', class_='visited chapt')
+            for chap in chapters_string:
+                chapter_links.append(self.__base_url + chap['href'])
+        except:
+            pass
+        return BatoResult(title, author, artist, og_lang, translated_lang, release_year, genres, status, description, thumbnail, chapter_links, total_chaps)
+
+    def get_manga_info_by_object(self, object: BatoSearchResult):
+        ''' Returns a BatoResult object with the following attributes: 
+            - title
+            - author 
+            - artist 
+            - genres 
+            - og_lang 
+            - translated_lang
+            - status
+            - release_year 
+            - description
+            - thumbnail
+            - chapter_links
+            - total_chapters
+        '''
+
+        response = requests.get(object.get_link())
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        title = object.get_title()
+        thumbnail = object.get_thumbnail()
+        description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
+        total_chaps = soup.find('div', class_='episode-list').find('div', class_='head').text
+        total_chaps = re.findall(r'\d+', total_chaps)
+        total_chaps = int(total_chaps[0])
+        author = None
+        artist = None
+        genres = object.get_genres()    
+        og_lang = None
+        translated_lang = None
+        status = None
+        release_year = None
+
+        attr_atribs = soup.find_all('div', class_='attr-item')
+
+        for attrib in attr_atribs:
+            if 'Authors' == (attrib.text.strip().split(':')[0]):
+                author = attrib.text.strip().split(':')[1:]
+                author = [auth.strip() for auth in author]
+                if len(author) == 1:
+                    author = author[0]
+
+            if 'Artists' == (attrib.text.strip().split(':')[0]):
+                artist = attrib.text.strip().split(':')[1:]
+                artist = [art.strip() for art in artist]
+                if len(artist) == 1:
+                    artist = artist[0]
+
+            if 'Original language' == (attrib.text.strip().split(':')[0]):
+                og_lang = attrib.text.strip().split(':')[1:]
+                og_lang = [lang.strip() for lang in og_lang]
+                if len(og_lang) == 1:
+                    og_lang = og_lang[0]
+
+            if 'Translated language' == (attrib.text.strip().split(':')[0]):
+                translated_lang = attrib.text.strip().split(':')[1:]
+                translated_lang = [lang.strip() for lang in translated_lang]
+                if len(translated_lang) == 1:
+                    translated_lang = translated_lang[0]
+
+            if 'Status' == (attrib.text.strip().split(':')[0]):
+                status = attrib.text.strip().split(':')[1:]
+                status = [stat.strip() for stat in status]
+                if len(status) == 1:
+                    status = status[0]
+
+            if 'Year of Release' == (attrib.text.strip().split(':')[0]):
+                release_year = attrib.text.strip().split(':')[1:]
+                release_year = [year.strip() for year in release_year]
+                if len(release_year) == 1:
+                    release_year = release_year[0]
+
+
+        chapter_links = list()
+
+        try:
+            chapters_string = soup.find('div', class_='episode-list').find('div', class_='main').find_all('a', class_='visited chapt')
+            for chap in chapters_string:
+                chapter_links.append(self.__base_url + chap['href'])
+        except:
+            pass
+        return BatoResult(title, author, artist, og_lang, translated_lang, release_year, genres, status, description, thumbnail, chapter_links, total_chaps)
