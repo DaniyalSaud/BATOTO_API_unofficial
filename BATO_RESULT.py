@@ -1,13 +1,18 @@
 class BatoResult:
-    def __init__(self, title: str, author: str, artist: str, genres: list, status: str, description: str, thumbnail: str, chapter_links: list):
+    
+    def __init__(self, title: str, author: str, artist: str, og_lang: str, translated_lang: str, release_year: int, genres: list, status: str, description: str, thumbnail: str, chapter_links: list, total_chapters: int):
         self.__title = title
         self.__author = author
         self.__artist = artist
         self.__genres = genres
+        self.__og_lang = og_lang
+        self.__translated_lang = translated_lang
         self.__status = status
+        self.__release_year = release_year
         self.__description = description
         self.__thumbnail = thumbnail
         self.__chapter_links = chapter_links
+        self.__total_chapters = total_chapters
 
     def get_images_from_chapter(self, chapter_idx: int) -> list:
         '''Returns a list of image links from a chapter'''
@@ -48,9 +53,13 @@ class BatoResult:
         '''Returns the chapter links of the manga'''
         return self.chapter_links
 
+    def get_total_chapters(self) -> int:
+        '''Returns the total number of chapters'''
+        return self.total_chapters
+
     def __str__(self) -> str:
         '''Returns a string representation of the object'''
-        return f"Title: {self.title}\nAuthor: {self.author}\nArtist: {self.artist}\nGenres: {self.genres}\nStatus: {self.status}\nDescription: {self.description}\nThumbnail: {self.thumbnail}\nChapter Links: {self.chapter_links}"
+        return f"Title: {self.__title}\nAuthor: {self.__author}\nArtist: {self.__artist}\nGenres: {self.__genres}\nStatus: {self.__status}\nDescription: {self.__description}\nTotal Chapters: {self.__total_chapters}"
 
 
 class BatoSearchResult:
@@ -70,7 +79,7 @@ class BatoSearchResult:
         '''Returns the alias of the manga'''
         return self.__alias
     
-    def get_genre(self) -> list:
+    def get_genres(self) -> list:
         '''Returns the genre of the manga'''
         return self.__genre
     
