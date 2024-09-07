@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import ast
 from BATO_RESULT import BatoResult
-from BATO_RESULT import BatoSemiResult
+from BATO_RESULT import BatoSearchResult
 
 class Batoto_API:
     
@@ -119,47 +119,98 @@ class Batoto_API:
 
         return titles_search_result
     
-    def get_manga_list_by_title(title: str) -> list:
+    def __get_max_page_number(self, html: str) -> list:
+        '''Returns an integer of the last page link'''
+        
+        page_links = list()
+        max_page_num = 0
+        soup = BeautifulSoup(html, 'html.parser')
+        pages = soup.find_all('ul', class_='pagination')[-1]
+        pages_link = pages.find_all('li', class_='page-item')
+
+        for page in pages_link:
+            link = page.find('a')['href']
+            link = self.__base_url + link
+
+            page_links.append(link)
+
+        for link in page_links:
+            try:
+                page_num = int(link.split('=')[-1])
+                if page_num > max_page_num:
+                    max_page_num = page_num
+            except:
+                pass
+        return max_page_num
+
+    def get_page_links(self, html: str) -> list:
+        '''Returns a list of page links'''
+        page_links = list()
+        max_num_pages = self.__get_max_page_number(html)
+        soup = BeautifulSoup(html, 'html.parser')
+        pages = soup.find_all('ul', class_='pagination')[-1]
+        pages_link = pages.find_all('li', class_='page-item')
+        link_template = pages_link[0].find('a')['href']
+        link_template = link_template.split('page=')
+        base_link = link_template[0] + 'page='
+
+        for i in range(1, max_num_pages + 1):
+            page_links.append(f"{self.__base_url}{base_link}{i}")
+
+        return page_links
+
+    def get_manga_list_by_title(self, title: str, limit=20) -> list:
         '''Returns a list of manga links that match the title'''
         
-        url = "https://bato.to/search"
+        titles = list()
         params = {
             "word": title,
             'langs': 'en',
         }
-        response = requests.get(url, params=params)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        result = soup.find('div', class_='series-list')
-        results = result.find_all('div', class_='line-b')
+
+        response = requests.get(self.__search_url, params=params)
+        page_links = self.get_page_links(response.text)
+
+        for link in page_links:
+        # make a request for each page
+        # Then get titles from each page
+            if len(titles) >= limit:
+                break
+            response = requests.get(link)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            result = soup.find('div', class_='series-list')
+            results = result.find_all('div', class_='line-b')
         
-        titles = list()
+            for res in results:
+                if len(titles) >= limit:
+                    break
+                img_link = res.find('a', class_='item-cover').find('img')['src'].strip()
+        
 
-        for res in results:
-            img_link = res.find('a', class_='item-cover').find('img')['src'].strip()
+                text_result = res.find('div', class_='item-text')
 
-            text_result = res.find('div', class_='item-text')
-            title = text_result.find('a', class_='item-title').text
-            link = 'https://bato.to' + text_result.find('a')['href']
-            aliasStr = text_result.find('div', class_='item-alias')
-            alias = list()
-            if aliasStr:
-                alias += aliasStr.text.split('/')
-                alias += aliasStr.text.split(',')
-                for i in range(len(alias)):
-                    alias[i] = alias[i].strip()
-            else:
-                alias = None
-
-            genre = text_result.find('div', class_='item-genre').text.split(',')
-            for i in range(len(genre)):
-                genre[i] = genre[i].strip()
-
-            volch = text_result.find('div', class_='item-volch')
-            if volch:
-                volch = volch.find('a').text.strip()
-            else:
-                volch = None
-
-            titles.append(BatoSemiResult(title, alias, genre, volch, img_link))
+                title = text_result.find('a', class_='item-title').text
+                link = self.__base_url + text_result.find('a')['href']
+                aliasStr = text_result.find('div', class_='item-alias')
+                alias = list()
+                if aliasStr:
+                    alias += aliasStr.text.split('/')
+                    alias += aliasStr.text.split(',')
+                    for i in range(len(alias)):
+                        alias[i] = alias[i].strip()
+                else:
+                    alias = None
+    
+                genre = text_result.find('div', class_='item-genre').text.split(',')
+                for i in range(len(genre)):
+                    genre[i] = genre[i].strip()
+    
+                volch = text_result.find('div', class_='item-volch')
+                if volch:
+                    volch = volch.find('a').text.strip()
+                else:
+                    volch = None
+    
+                titles.append(BatoSearchResult(title, link, alias, genre, volch, img_link))
 
         return titles

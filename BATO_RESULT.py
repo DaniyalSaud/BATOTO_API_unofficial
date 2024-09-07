@@ -53,13 +53,14 @@ class BatoResult:
         return f"Title: {self.title}\nAuthor: {self.author}\nArtist: {self.artist}\nGenres: {self.genres}\nStatus: {self.status}\nDescription: {self.description}\nThumbnail: {self.thumbnail}\nChapter Links: {self.chapter_links}"
 
 
-class BatoSemiResult:
-    def __init__(self, title: str, alias: list, genre: list, last_vol_ch: str, thumbnail: str) -> None:
+class BatoSearchResult:
+    def __init__(self, title: str, link: str, alias: list, genre: list, last_vol_ch: str, thumbnail: str) -> None:
         self.__title = title
         self.__alias = alias
         self.__genre = genre
         self.__last_vol_ch = last_vol_ch
         self.__thumbnail = thumbnail
+        self.__link = link
     
     def get_title(self) -> str:
         '''Returns the title of the manga'''
@@ -80,3 +81,7 @@ class BatoSemiResult:
     def get_thumbnail(self) -> str:
         '''Returns the thumbnail of the manga'''
         return self.__thumbnail
+    
+    def get_link(self) -> str:
+        '''Returns the link of the manga'''
+        return self.__link
