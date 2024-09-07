@@ -235,7 +235,14 @@ class Batoto_API:
 
         title = soup.find('h3', class_='item-title').text.strip()
         thumbnail = soup.find('div', class_='attr-cover').find('img')['src'].strip()
-        description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
+
+        description = None
+        description_str = soup.find('div', id="limit-height-ctrl-summary")
+        if description_str:
+            description = description_str.find('div', class_='limit-html')
+            if description:
+                description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
+
         total_chaps = soup.find('div', class_='episode-list').find('div', class_='head').text
         total_chaps = re.findall(r'\d+', total_chaps)
         total_chaps = int(total_chaps[0])
@@ -325,10 +332,23 @@ class Batoto_API:
 
         title = object.get_title()
         thumbnail = object.get_thumbnail()
-        description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
-        total_chaps = soup.find('div', class_='episode-list').find('div', class_='head').text
-        total_chaps = re.findall(r'\d+', total_chaps)
-        total_chaps = int(total_chaps[0])
+        description = None
+        description_str = soup.find('div', id="limit-height-ctrl-summary")
+        if description_str:
+            description_str = description_str.find('div', class_='limit-html')
+            if description_str:
+                description = soup.find('div', id="limit-height-ctrl-summary").find('div', class_='limit-html').text.strip()
+        else:
+            description = None
+        
+        total_chaps = soup.find('div', class_='episode-list')
+        if total_chaps:
+            total_chaps = total_chaps.find('div', class_='head').text
+            total_chaps = re.findall(r'\d+', total_chaps)
+            total_chaps = int(total_chaps[0])
+        else:
+            total_chaps = 0
+
         author = None
         artist = None
         genres = object.get_genres()    
@@ -386,3 +406,41 @@ class Batoto_API:
         except:
             pass
         return BatoResult(title, author, artist, og_lang, translated_lang, release_year, genres, status, description, thumbnail, chapter_links, total_chaps)
+
+    def get_chapter_image_links_from_chapter_link(self, chapter_link: str) -> list:
+        '''Returns a list of image links from a chapter'''
+
+        response = requests.get(chapter_link)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        images_js = soup.find_all('script')
+
+        for js in images_js:
+            if 'const imgHttps' in js.text:
+                unfiltered_string = js.text.strip()
+                break
+        
+        link_unfilitered_str = str()
+        add_to_str = False
+        for i in range(len(unfiltered_string)):
+            if unfiltered_string[i] == '[':
+                add_to_str = True
+            if add_to_str:
+                link_unfilitered_str += unfiltered_string[i]
+            if unfiltered_string[i] == ']':
+                add_to_str = False
+                break
+
+        link_filitered_str = link_unfilitered_str.replace('[', '')
+        link_filitered_str = link_filitered_str.replace(']', '')
+        link_filitered_str = link_filitered_str.replace('"', '')
+
+        links = link_filitered_str.split(',')
+
+        return links
+    
+    def get_chapter_image_links_from_index(self, manga: BatoResult, index_of_chapter: int) -> list:
+        '''Returns a list of image links from a chapter'''
+        return self.get_chapter_image_links_from_chapter_link(manga.get_chapter_links()[index_of_chapter + 1])
+
+        

@@ -23,39 +23,39 @@ class BatoResult:
 
     def get_chapter_count(self) -> int:
         '''Returns the number of chapters'''
-        return len(self.chapter_links)
+        return self.__total_chapters
 
     def get_author(self) -> str:
         '''Returns the author of the manga'''
-        return self.author
+        return self.__author
 
     def get_artist(self) -> str:
         '''Returns the artist of the manga'''
-        return self.artist
+        return self.__artist
     
     def get_genres(self) -> list:
         '''Returns the genres of the manga'''
-        return self.genres
+        return self.__genres
     
     def get_status(self) -> str:
         '''Returns the status of the manga'''
-        return self.status
+        return self.__status
     
     def get_description(self) -> str:
         '''Returns the description of the manga'''
-        return self.description
+        return self.__description
     
     def get_thumbnail(self) -> str:
         '''Returns the thumbnail of the manga'''
-        return self.thumbnail
+        return self.__thumbnail
     
     def get_chapter_links(self) -> list:
         '''Returns the chapter links of the manga'''
-        return self.chapter_links
+        return self.__chapter_links
 
     def get_total_chapters(self) -> int:
         '''Returns the total number of chapters'''
-        return self.total_chapters
+        return self.__total_chapters
 
     def __str__(self) -> str:
         '''Returns a string representation of the object'''
