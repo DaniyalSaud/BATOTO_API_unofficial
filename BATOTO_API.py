@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import ast
 from BATO_RESULT import BatoResult
 from BATO_RESULT import BatoSearchResult
+from helper_function import *
 
 class Batoto_API:
     
@@ -161,7 +162,14 @@ class Batoto_API:
         return page_links
 
     def get_manga_list_by_title(self, title: str, limit=20) -> list:
-        '''Returns a list of manga links that match the title'''
+        '''Returns a list of BatoSearchResult Objects (Mangas) that match the title\n
+        BatoSearchResult Object has the following attributes: \n
+        - Title
+        - Link
+        - Alias
+        - Genre
+        - volch
+        - Thumbnail'''
         
         titles = list()
         params = {
@@ -441,6 +449,24 @@ class Batoto_API:
     
     def get_chapter_image_links_from_index(self, manga: BatoResult, index_of_chapter: int) -> list:
         '''Returns a list of image links from a chapter'''
-        return self.get_chapter_image_links_from_chapter_link(manga.get_chapter_links()[index_of_chapter + 1])
+        return self.get_chapter_image_links_from_chapter_link(manga.get_chapter_links()[index_of_chapter - 1])
 
+    def download_images(self, manga: BatoResult, chapter_index: int, filepath: str = str()):
+        import os
+
+        if not os.path.exists(manga.get_title()):
+            os.mkdir(manga.get_title())
+
+        if not os.path.exists(f"{manga.get_title()}/Chapter(Episode) {chapter_index}"):
+            os.mkdir(f"{manga.get_title()}/Chapter(Episode) {chapter_index}")
         
+        if filepath == '':
+            filepath = f"{manga.get_title()}/Chapter(Episode) {chapter_index}"
+        else:
+            filepath = f"{filepath}/{manga.get_title()}/Chapter(Episode) {chapter_index}"
+        
+        print(filepath)
+        # Now go through all the links and download them
+        for i in range(len(self.get_chapter_image_links_from_index(manga, chapter_index))):
+            link = self.get_chapter_image_links_from_index(manga, chapter_index)[i]
+            download_image(link, filepath, f"image{i}", 'webp')

@@ -14,12 +14,9 @@ class BatoResult:
         self.__chapter_links = chapter_links
         self.__total_chapters = total_chapters
 
-    def get_images_from_chapter(self, chapter_idx: int) -> list:
-        '''Returns a list of image links from a chapter'''
-        imgs_links = list()
-        # Logic to get the images from the chapter
-        return imgs_links
-
+    def get_title(self) -> str:
+        '''Returns the title of the manga'''
+        return self.__title
 
     def get_chapter_count(self) -> int:
         '''Returns the number of chapters'''
@@ -59,8 +56,29 @@ class BatoResult:
 
     def __str__(self) -> str:
         '''Returns a string representation of the object'''
-        return f"Title: {self.__title}\nAuthor: {self.__author}\nArtist: {self.__artist}\nGenres: {self.__genres}\nStatus: {self.__status}\nDescription: {self.__description}\nTotal Chapters: {self.__total_chapters}"
+        return_str = str()
+        if self.__title:
+            return_str += f"Title: {self.__title}\n"
+        if self.__author:
+            return_str += f"Author: {self.__author}\n"
+        if self.__artist:
+            return_str += f"Artist: {self.__artist}\n"
+        if self.__genres:
+            return_str += f"Genres: {self.__genres}\n"
+        if self.__og_lang:
+            return_str += f"Original Language: {self.__og_lang}\n"
+        if self.__translated_lang:
+            return_str += f"Translated Language: {self.__translated_lang}\n"
+        if self.__status:
+            return_str += f"Status: {self.__status}\n"
+        if self.__release_year:
+            return_str += f"Release Year: {self.__release_year}\n"
+        if self.__description:
+            return_str += f"Description: {self.__description}\n"
+        if self.__total_chapters:
+            return_str += f"Total Chapters: {self.__total_chapters}\n"
 
+        return return_str
 
 class BatoSearchResult:
     def __init__(self, title: str, link: str, alias: list, genre: list, last_vol_ch: str, thumbnail: str) -> None:
